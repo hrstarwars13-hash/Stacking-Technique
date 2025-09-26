@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stacking ML Demo</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      background: #f7f9fb;
+      color: #222;
+    }
+    .main-flex-container {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 2.5em;
+      max-width: 1400px;
+      margin: 0 auto;
+      min-height: 80vh;
+    }
+    .process-graph-panel {
+      flex: 0 0 320px;
+      min-width: 260px;
+      max-width: 340px;
+    }
+    .process-step-panel {
+      flex: 1 1 700px;
+      min-width: 320px;
+      max-width: 800px;
+    }
+    h1 {
+      text-align: center;
+      margin-top: 1.5em;
+      margin-bottom: 0.5em;
+      font-size: 2.2em;
+      color: #0074D9;
+    }
+    .section {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      padding: 2em 2em 1.5em 2em;
+      transition: box-shadow 0.2s;
+      margin: 1.5em 0;
+    }
+    .section:not(:first-child) {
+      margin-top: 1.5em;
+    }
+    .model-list, .prediction-list {
+      margin: 1em 0;
+    }
+    button {
+      margin: 0.5em 0;
+      background: #0074D9;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.6em 1.3em;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #005fa3;
+    }
+    .output {
+      background: #f4f8fb;
+      padding: 1em;
+      border-radius: 7px;
+      margin-top: 0.7em;
+      font-size: 1.05em;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 0.7em;
+      background: #fafdff;
+      border-radius: 7px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    th, td {
+      padding: 0.55em 0.7em;
+      text-align: center;
+      border-bottom: 1px solid #e3e8ee;
+    }
+    th {
+      background: #eaf6fb;
+      color: #0074D9;
+      font-weight: 600;
+    }
+    .flow-step {
+      min-width: 140px;
+      max-width: 180px;
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(0,116,217,0.10);
+      border: 2px solid #0074D9;
+      background: #fff;
+      color: #0074D9;
+      font-weight: 500;
+      font-size: 1.08em;
+      margin: 0 0.5em;
+      padding: 14px 0;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 20px;
+    }
+    .flow-step.active {
+      background: linear-gradient(90deg, #0074D9 60%, #00c3e3 100%);
+      color: #fff;
+      box-shadow: 0 4px 18px rgba(0,116,217,0.18);
+      border-color: #00c3e3;
+      z-index: 1;
+    }
+    .flow-step::before {
+      content: attr(data-step);
+      position: absolute;
+      left: -18px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #fff;
+      color: #0074D9;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95em;
+      font-weight: bold;
+      border: 2px solid #eaf6fb;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .flow-step:first-child::before {
+      display: none;
+    }
+    .graph-process {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5em;
+      margin: 2em 0 1em 0;
+    }
+    .graph-node {
+      width: 210px;
+      min-height: 48px;
+      background: #fff;
+      border: 2.5px solid #0074D9;
+      border-radius: 50px;
+      box-shadow: 0 2px 12px rgba(0,116,217,0.10);
+      color: #0074D9;
+      font-size: 1.13em;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s, border-color 0.2s;
+      margin: 0.2em 0;
+      position: relative;
+    }
+    .graph-node.active {
+      background: linear-gradient(90deg, #0074D9 60%, #00c3e3 100%);
+      color: #fff;
+      border-color: #00c3e3;
+      box-shadow: 0 4px 18px rgba(0,116,217,0.18);
+      z-index: 1;
+    }
+    .graph-arrow {
+      font-size: 2.2em;
+      color: #0074D9;
+      margin: 0.1em 0 0.1em 0;
+      user-select: none;
+    }
+    @media (max-width: 1100px) {
+      .main-flex-container {
+        flex-direction: column;
+        gap: 0.5em;
+      }
+      .process-graph-panel, .process-step-panel {
+        max-width: 100vw;
+        min-width: 0;
+      }
+    }
+    @media (max-width: 800px) {
+      .section {
+        padding: 1.2em 0.5em 1em 0.5em;
+      }
+      .graph-node {
+        width: 140px;
+        font-size: 0.98em;
+        min-height: 38px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Stacking Machine Learning Demo</h1>
+  <div class="main-flex-container">
+    <div class="process-graph-panel">
+      <div class="section" id="flowchart-section">
+        <h2>Stacking Process Overview</h2>
+        <div style="text-align:center;margin-bottom:1em;">
+          <button onclick="generateRandomDataset()">Generate Random Dataset</button>
+        </div>
+        <div id="stacking-graph" style="display:flex;flex-direction:column;align-items:center;"></div>
+      </div>
+    </div>
+    <div class="process-step-panel">
+      <div class="section" id="dataset-section">
+  <h2>Dataset</h2>
+  <div id="dataset-table"></div>
+      </div>
+      <div class="section" id="base-models-section">
+        <h2>1. Train Base Models</h2>
+        <form id="base-models-form" style="margin-bottom:1em;">
+          <label style="margin-right:1em;">
+            <input type="checkbox" name="model1" checked>
+            Model 1: y = 2x
+          </label>
+          <label style="margin-right:1em;">
+            <input type="checkbox" name="model2" checked>
+            Model 2: y = 2x + 1
+          </label>
+          <label style="margin-right:1em;">
+            <input type="checkbox" name="model3">
+            Model 3: y = 3x
+          </label>
+          <label style="margin-right:1em;">
+            <input type="checkbox" name="model4">
+            Model 4: y = x + 5
+          </label>
+        </form>
+        <button onclick="trainBaseModels()">Train Base Models</button>
+        <div class="model-list" id="base-models-list"></div>
+  <div id="base-models-visual"></div>
+      </div>
+      <div class="section" id="base-predictions-section">
+        <h2>2. Generate Base Model Predictions</h2>
+        <button onclick="generateBasePredictions()">Generate Predictions</button>
+        <div class="prediction-list" id="base-predictions-list"></div>
+  <div id="base-predictions-visual"></div>
+      </div>
+      <div class="section" id="meta-dataset-section">
+        <h2>3. Create Meta-Model Dataset</h2>
+        <button onclick="createMetaDataset()">Create Meta-Model Dataset</button>
+        <div class="output" id="meta-dataset-output"></div>
+  <div id="meta-dataset-visual"></div>
+      </div>
+      <div class="section" id="meta-model-section">
+        <h2>4. Train Meta-Model</h2>
+        <button onclick="trainMetaModel()">Train Meta-Model</button>
+        <div class="output" id="meta-model-output"></div>
+  <div id="meta-model-visual"></div>
+      </div>
+      <div class="section" id="final-prediction-section">
+        <h2>5. Final Prediction</h2>
+        <button onclick="makeFinalPrediction()">Make Final Prediction</button>
+        <div class="output" id="final-prediction-output"></div>
+  <div id="final-prediction-visual"></div>
+      </div>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
